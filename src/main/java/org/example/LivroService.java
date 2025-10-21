@@ -2,6 +2,8 @@ package org.example;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class LivroService {
 
@@ -22,22 +24,14 @@ public class LivroService {
     livroExistente.setTitulo(dadosLivro.getTitulo());
     livroExistente.setAutor(dadosLivro.getAutor());
     livroExistente.setAnoPublicacao(dadosLivro.getAnoPublicacao());
+    livroExistente.setDisponivel(dadosLivro.isDisponivel());
 
     livroRepository.update(livroExistente);
     return livroExistente;
   }
 
   public Livro registrarLivro(Long id, Livro dadosLivro) {
-    Livro livroRegistrado = livroRepository.findById(id);
-    if (livroRegistrado == null) {
-      throw new ResourceNotFoundException("Livro não encontado com o ID: " + id);
-    }
-    livroRegistrado.setTitulo(dadosLivro.getTitulo());
-    livroRegistrado.setAutor(dadosLivro.getAutor());
-    livroRegistrado.setAnoPublicacao(dadosLivro.getAnoPublicacao());
-
-    livroRegistrado.setDisponivel(true);
-    return livroRegistrado;
+    return livroRepository.save(dadosLivro);
   }
 
   public Livro deletarLivro(Long id) {
@@ -50,6 +44,7 @@ public class LivroService {
     }
   }
 
+  //Consultar livro por ID
   public Livro consultarLivro(Long id) {
     Livro livroConsultado = livroRepository.findById(id);
     if (livroConsultado == null) {
@@ -64,9 +59,14 @@ public class LivroService {
     if (livroAtualizado == null) {
       throw new ResourceNotFoundException("Livro não encontrado com o ID: " + id);
     } else {
-      livroAtualizado.getTitulo();
       livroAtualizado.setDisponivel(disponivel);
+      livroRepository.update(livroAtualizado);
+      livroAtualizado.getTitulo();
       return livroAtualizado;
     }
+  }
+
+  public List<Livro> listarLivros() {
+    return livroRepository.listarLivros();
   }
 }

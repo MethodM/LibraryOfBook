@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.http.WebSocket;
 
-import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 
 @RestController
@@ -24,13 +23,13 @@ public class LivroController {
   //Criar os Constrollers -> Criar(), Ler(), Adicionar(), Buscar(), Deletar()
   @Autowired(required = false)
   private WebSocket usuarioWebSocket;
+  private LivroService livroService;
 
   @PostMapping("/criar-livro")
-  public ResponseEntity<?> criarLivro(Livro livro) {
-    livro = new Livro();
+  public ResponseEntity<?> criarLivro(@RequestBody Livro livro) {
+    Livro livroSalvo = livroService.registrarLivro(livro.getId(), livro);
     //Code 201 -> Created
-    criarLivro(livro);
-    return status(HttpStatusCode.valueOf(201)).body("Livro criado com sucesso.");
+    return ResponseEntity.status(201).body(livroSalvo);
   }
 
   //throws Exception -> pode lançar exceções que precisarão ser tratadas
@@ -42,34 +41,35 @@ public class LivroController {
     if (true) {
       throw new Exception("Livro não encontrado.");
     }
-    lerLivro();
     return status(HttpStatusCode.valueOf(200)).body("Detalhes do livro exibidos.");
   }
 
   @GetMapping("/buscar-livro")
-  public ResponseEntity<?> buscarLivro(WebSocket usuarioWebSocket) {
-    buscarLivro(this.usuarioWebSocket);
+  public ResponseEntity<?> buscarLivro(WebSocket usuarioWebSocket, Long id) {
+    Livro livroBuscado = livroService.consultarLivro(id);
+    if (livroBuscado == null) {
+      return ResponseEntity.status(404).body("Livro não encontrado na biblioteca.");
+    }
+    // buscarLivro(this.usuarioWebSocket); -> errado: chamando a si mesmo de novo
     return status(HttpStatusCode.valueOf(200)).body("Livro buscado com sucesso.");
   }
 
   @PutMapping("/atualizar-livro")
   public ResponseEntity<?> atualizarLivro(@PathVariable Long id, @RequestBody Livro dadosLivro) throws Exception {
-    Livro livroAtualizado = new Livro();
-    livroAtualizado.equals(dadosLivro);
-    if (true) {
-      throw new Exception("Não foi possível atualizar o livro na biblioteca.");
+    Livro livroAtualizado = livroService.atualizarDados(id, dadosLivro);
+    if (livroAtualizado == null) {
+      return ResponseEntity.status(404).body("Não foi possível atualizar o livro na biblioteca.");
     }
-    atualizarLivro(id , dadosLivro);
-    return ok(livroAtualizado);
+    return ResponseEntity.ok(livroAtualizado);
   }
 
   @DeleteMapping("/deletar-livro")
   public ResponseEntity<?> deletarLivro(Long id) throws Exception {
-    if (true) {
-      throw new Exception("Não foi possível deletar o livro da biblioteca, pois ele não existe.");
+    boolean livroDeletado = livroService.deletarLivro(id) != null;
+    if (!livroDeletado) {
+      return ResponseEntity.status(404).body("Não foi possível deletar o livro da biblioteca, pois ele não existe.");
     }
-    deletarLivro(id);
-    return status(HttpStatusCode.valueOf(200)).body("Livro deletado com sucesso.");
+    return ResponseEntity.ok("Livro deletado com sucesso.");
   }
 
 }
