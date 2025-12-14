@@ -69,4 +69,9 @@ public class LivroService {
   public List<Livro> listarLivros() {
     return livroRepository.listarLivros();
   }
+
+  public Livro buscarPorId(Long id) {
+    return livroRepository.findById(id)
+        .orElseThrow(() -> new Livro.LivroNaoEncontradoException(id));
+  }
 }

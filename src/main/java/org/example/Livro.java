@@ -35,7 +35,19 @@ public class Livro {
     this.disponivel = disponivel;
   }
 
+  public Long getId(){
+    return id;
+  }
+
   public void exibirDetalhes(){
     System.out.println("Teste: Detalhes do livro");
+  }
+
+  public void setTitulo(String titulo) {
+    this.titulo = titulo;
+  }
+
+  public String getTitulo() {
+    return titulo;
   }
 }
