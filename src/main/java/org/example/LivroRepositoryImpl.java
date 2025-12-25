@@ -23,7 +23,7 @@ public class LivroRepositoryImpl implements LivroRepository {
   @Override
   public Livro save(Livro livro) {
     //Se o livro não possuir um ID, atribui um novo ID
-    if(livro.getId() == null){
+    if (livro.getId() == null) {
       livro.setId(proximoId++);
     }
     listaLivros.add(livro);
