@@ -3,6 +3,7 @@ package org.example;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LivroService {
@@ -16,53 +17,49 @@ public class LivroService {
 
   public Livro atualizarDados(Long id, Livro dadosLivro) {
     //Lógica para atualizar os livros da biblioteca
-    Livro livroExistente = livroRepository.findById(id);
+    Optional<Livro> livroExistente = livroRepository.findById(id);
 
-    if (livroExistente == null) {
+    if (livroExistente.isEmpty()) {
       throw new ResourceNotFoundException("Livro não encontrado com o ID: " + id);
     }
-    livroExistente.setTitulo(dadosLivro.getTitulo());
-    livroExistente.setAutor(dadosLivro.getAutor());
-    livroExistente.setAnoPublicacao(dadosLivro.getAnoPublicacao());
-    livroExistente.setDisponivel(dadosLivro.isDisponivel());
+    livroExistente.get().setTitulo(dadosLivro.getTitulo());
+    livroExistente.get().setAutor(dadosLivro.getAutor());
+    livroExistente.get().setAnoPublicacao(dadosLivro.getAnoPublicacao());
+    livroExistente.get().setDisponivel(dadosLivro.isDisponivel());
 
-    livroRepository.update(livroExistente);
-    return livroExistente;
+    livroRepository.update(livroExistente.orElse(null));
+    return livroExistente.orElse(null);
   }
 
-  public Livro registrarLivro(Long id, Livro dadosLivro) {
-    return livroRepository.save(dadosLivro);
+  public Livro registrarLivro(Livro livro) {
+    return livroRepository.save(livro);
   }
 
   public Livro deletarLivro(Long id) {
-    Livro livroDeletado = livroRepository.findById(id);
-    if (livroDeletado == null) {
+    Optional<Livro> livroDeletado = livroRepository.findById(id);
+    if (livroDeletado.isEmpty()) {
       throw new ResourceNotFoundException("Livro não encontrado com o ID: " + id);
     } else {
-      livroRepository.delete(livroDeletado);
-      return livroDeletado;
+      livroRepository.delete(livroDeletado.orElse(null));
+      return livroDeletado.orElse(null);
     }
   }
 
   //Consultar livro por ID
   public Livro consultarLivro(Long id) {
-    Livro livroConsultado = livroRepository.findById(id);
-    if (livroConsultado == null) {
-      throw new ResourceNotFoundException("Livro não encontrado com o ID: " + id);
-    } else {
-      return livroConsultado;
-    }
+    return livroRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Livro não encontrado com o ID: " + id));
   }
 
   public Livro atualizarDisponibilidade(Long id, boolean disponivel) {
-    Livro livroAtualizado = livroRepository.findById(id);
-    if (livroAtualizado == null) {
+    Optional<Livro> livroAtualizado = livroRepository.findById(id);
+    if (livroAtualizado.isEmpty()) {
       throw new ResourceNotFoundException("Livro não encontrado com o ID: " + id);
     } else {
-      livroAtualizado.setDisponivel(disponivel);
-      livroRepository.update(livroAtualizado);
-      livroAtualizado.getTitulo();
-      return livroAtualizado;
+      livroAtualizado.get().setDisponivel(disponivel);
+      livroRepository.update(livroAtualizado.orElse(null));
+      livroAtualizado.get().getTitulo();
+      return livroAtualizado.orElse(null);
     }
   }
 

@@ -7,9 +7,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,6 +84,30 @@ public class LivroControllerTest {
     );
 
     // THEN (então...)
-    response.andExpect(status().isBadRequest());
+    response.andExpect(status().isNotFound())
+    .andExpect(content().string("Livro com id " + idInexistente + " não encontrado."));;
   }*/
+  @Test
+  public void testAtualizarLivro() throws Exception {
+
+    //Given
+    Long id = 1L;
+    Livro livroAtualizado = new Livro();
+    livroAtualizado.setTitulo("Livro Atualizado");
+    livroAtualizado.setAutor("Autor Atualizado");
+
+    String jsonLivro = new ObjectMapper().writeValueAsString(livroAtualizado);
+
+    //When
+    ResultActions response = mockMvc.perform(put("/livros/atualizar-livro/{id}", id)//.param("id", "1"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(jsonLivro));
+
+    //Then
+    response.andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.titulo").value("Livro Atualizado"))
+        .andExpect(jsonPath("$.autor").value("Autor Atualizado"))
+        .andExpect(content().json(jsonLivro));
+  }
 }

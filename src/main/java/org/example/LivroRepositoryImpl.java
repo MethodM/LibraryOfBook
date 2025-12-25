@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class LivroRepositoryImpl implements LivroRepository {
@@ -12,11 +13,11 @@ public class LivroRepositoryImpl implements LivroRepository {
   private Long proximoId = 1L; // Simula auto-incremento de ID
 
   @Override
-  public Livro findById(Long id) {
-    return listaLivros.stream()
+  public Optional<Livro> findById(Long id) {
+    return Optional.ofNullable(listaLivros.stream()
         .filter(livro -> livro.getId().equals(id))
         .findFirst()
-        .orElse(null);
+        .orElse(null));
   }
 
   @Override
