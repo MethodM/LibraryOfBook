@@ -23,8 +23,13 @@ public class LivroController {
   @Autowired
   private LivroService livroService;
 
+  public LivroController(LivroService livroService) {
+    this.livroService = livroService;
+  }
+
   @PostMapping("/criar-livro")
   public ResponseEntity<?> criarLivro(@RequestBody Livro livro) {
+    System.out.println("Recebi Livro: " + livro.getTitulo());
     Livro livroSalvo = livroService.registrarLivro(livro);
     //Code 201 -> Created
     return ResponseEntity.status(HttpStatus.CREATED).body(livroSalvo);
@@ -33,13 +38,13 @@ public class LivroController {
 
   //throws Exception -> pode lançar exceções que precisarão ser tratadas
   // em outro lugar (ou pelo Spring)
-  @GetMapping("/ler-livro/{id}")
+  /*@GetMapping("/ler-livro/{id}")
   public ResponseEntity<?> lerLivro() throws Exception {
     Livro livro = new Livro();
     livro.exibirDetalhes();
     return ResponseEntity.status(HttpStatus.OK).body("Detalhes do livro exibidos.");
     //return status(HttpStatusCode.valueOf(200)).body("Detalhes do livro exibidos.");
-  }
+  }*/
 
   @GetMapping("/buscar-livro/{id}")
   public ResponseEntity<?> buscarLivro(@PathVariable Long id) {
@@ -48,25 +53,21 @@ public class LivroController {
       return ResponseEntity.status(404).body("Livro não encontrado na biblioteca.");
     }
     // buscarLivro(this.usuarioWebSocket); -> errado: chamando a si mesmo de novo
-    return ResponseEntity.ok(livroBuscado);
+    return ResponseEntity.ok(livroBuscado); //está correto -OK
   }
 
   @PutMapping("/atualizar-livro/{id}")
-  public ResponseEntity<?> atualizarLivro(@PathVariable Long id, @RequestBody Livro dadosLivro) throws Exception {
+  public ResponseEntity<?> atualizarLivro(@PathVariable Long id, @RequestBody Livro dadosLivro) {
     Livro livroAtualizado = livroService.atualizarDados(id, dadosLivro);
-    if (livroAtualizado == null) {
+    /*if (livroAtualizado == null) {
       return ResponseEntity.status(404).body("Não foi possível atualizar o livro na biblioteca.");
-    }
+    } -> até que plausível */
     return ResponseEntity.ok(livroAtualizado);
   }
 
   @DeleteMapping("/deletar-livro/{id}")
-  public ResponseEntity<?> deletarLivro(@PathVariable Long id) throws Exception {
-    boolean livroDeletado = livroService.deletarLivro(id) != null;
-    if (!livroDeletado) {
-      return ResponseEntity.status(404).body("Não foi possível deletar o livro da biblioteca, pois ele não existe.");
-    }
+  public ResponseEntity<?> deletarLivro(@PathVariable Long id) {
+    livroService.deletarLivro(id);
     return ResponseEntity.ok("Livro deletado com sucesso.");
   }
-
 }

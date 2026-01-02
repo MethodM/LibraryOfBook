@@ -3,12 +3,15 @@ package org.example;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -16,8 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = LivroController.class)
 public class LivroControllerTest {
 
   @Autowired
@@ -26,11 +28,39 @@ public class LivroControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Autowired
-  private LivroService livroService;
+  @MockitoBean
+  private LivroService livroService; //mocka a dependência do controller
 
   @Test
-  public void testCriarLivro() throws Exception {
+  public void testCriarLivro() throws Exception { //Retorna código 201 Created
+
+    // GIVEN
+    Livro livroEntrada = new Livro();
+    livroEntrada.setTitulo("Teste de Livro");
+
+    Livro livroSalvo = new Livro();
+    livroSalvo.setId(1L);
+    livroSalvo.setTitulo("Teste de Livro");
+
+    given(livroService.registrarLivro(any(Livro.class)))
+        .willReturn(livroSalvo);
+
+    // WHEN
+    ResultActions response = mockMvc.perform(
+        post("/livros/criar-livro")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(livroEntrada))
+    );
+
+    // THEN
+    response
+        .andExpect(status().isCreated())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.titulo").value("Teste de Livro"));
+  }
+  //@Test -> anterior
+  /*public void testCriarLivro() throws Exception {
     Livro livroTest = new Livro();
     livroTest.setTitulo("Teste de Livro");
 
@@ -41,7 +71,7 @@ public class LivroControllerTest {
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.titulo").value("Teste"));
     //expressão para dispor sobre id e titulo
-  }
+  }*/
 
   @Test
   public void deveRetornarErroAoCriarLivroSemDados() throws Exception {
@@ -58,9 +88,16 @@ public class LivroControllerTest {
 
   @Test //indica uma anotação do JUnit "teste automatizado"
   public void testBuscarLivro() throws Exception {
-    mockMvc.perform(get("/livros/buscar-livro"))
+    // GIVEN
+    Livro livro = new Livro(1L, "Teste", "Autor");
+    given(livroService.buscarPorId(1L)).willReturn(livro);
+
+    // WHEN
+    mockMvc.perform(get("/livros/{id}", 1L))
+
+        // THEN
         .andExpect(status().isOk())
-        .andExpect(content().string("Livro encontrado com sucesso."));
+        .andExpect(jsonPath("$.titulo").value("Teste"));
   }
 
   @Test
@@ -98,6 +135,9 @@ public class LivroControllerTest {
     livroAtualizado.setAutor("Autor Atualizado");
 
     String jsonLivro = new ObjectMapper().writeValueAsString(livroAtualizado);
+
+    given(livroService.atualizarDados(eq(1L), any()))
+        .willReturn(livroAtualizado);
 
     //When
     ResultActions response = mockMvc.perform(put("/livros/atualizar-livro/{id}", id)//.param("id", "1"))
