@@ -59,24 +59,28 @@ public class LivroControllerTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.titulo").value("Teste de Livro"));
   }
-  //@Test -> anterior
-  /*public void testCriarLivro() throws Exception {
-    Livro livroTest = new Livro();
-    livroTest.setTitulo("Teste de Livro");
-
-    mockMvc.perform(post("/livros/criar-livro")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(livroTest)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.titulo").value("Teste"));
-    //expressão para dispor sobre id e titulo
-  }*/
 
   @Test
   public void deveRetornarErroAoCriarLivroSemDados() throws Exception {
-    mockMvc.perform(post("/livros/criar-livro"))
-        .andExpect(status().isBadRequest());
+    //Given - Fazer os testes de pré-condição
+    Livro livroInvalido = new Livro();
+    livroInvalido.setDisponivel(false);
+
+    given(livroService.registrarLivro(any(Livro.class)))
+        .willThrow(new IllegalArgumentException("Dados do livro inválidos"));
+
+    //When
+    ResultActions response = mockMvc.perform(
+        post("/livros/criar-livro")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(livroInvalido))
+    );
+
+    //Then
+    response
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.error").value("Dados do livro inválidos"));
   }
 
   @Test
@@ -101,30 +105,26 @@ public class LivroControllerTest {
   }
 
   @Test
-  public void deveRetornarErroAoBuscarLivroInexistente() throws Exception {
-    mockMvc.perform(get("/livros/buscar-livro").param("id", "9999"))
-        .andExpect(status().isBadRequest()) //Apresenta o status de não encontrado - código 400 Bad Request"
-        .andExpect(content().string("Livro não encontrado na biblioteca."))
-        .andExpect(status().isNotFound())
-        .andExpect(status().isInternalServerError());
-  }
+  void deveRetornarErroAoBuscarLivroInexistente() throws Exception {
 
-  //Poderia ser assim também, para ficar mais claro:
-  /*@Test
-  void dadoLivroInexistente_quandoBuscar_entaoRetornaBadRequest() throws Exception {
     // GIVEN (dado que...)
-    String idInexistente = "9999";
+    Long idInexistente = 999L;
+
+    given(livroService.consultarLivro(idInexistente))
+        .willThrow(new LivroNaoEncontradoException(idInexistente));
 
     // WHEN (quando...)
     ResultActions response = mockMvc.perform(
-        get("/livros/buscar-livro")
-            .param("id", idInexistente)
+        get("/livros/buscar-livro{id}", idInexistente)
     );
 
     // THEN (então...)
     response.andExpect(status().isNotFound())
-    .andExpect(content().string("Livro com id " + idInexistente + " não encontrado."));;
-  }*/
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.message")
+            .value("Livro com id " + idInexistente + " não encontrado."));
+  }
+
   @Test
   public void testAtualizarLivro() throws Exception {
 
