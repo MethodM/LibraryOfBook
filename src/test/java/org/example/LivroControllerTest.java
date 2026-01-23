@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -72,8 +73,8 @@ public class LivroControllerTest {
     //When
     ResultActions response = mockMvc.perform(
         post("/livros/criar-livro")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(livroInvalido))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(livroInvalido))
     );
 
     //Then
@@ -85,23 +86,76 @@ public class LivroControllerTest {
 
   @Test
   public void testLerLivro() throws Exception {
-    mockMvc.perform(get("/livros/{id}", 1L))
+    //Given
+    Long id = 1L;
+
+    Livro livroParaLeitura = new Livro();
+    livroParaLeitura.setId(id);
+    livroParaLeitura.setAutor("Autor de Teste");
+    livroParaLeitura.setTitulo("Livro de Teste");
+
+    given(livroService.consultarLivro(id))
+        .willReturn(livroParaLeitura);
+
+    //When
+    ResultActions response = mockMvc.perform(get("/livros/ler-livro/{id}", id)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(livroParaLeitura)));
+
+    //Then
+    response
         .andExpect(status().isOk())
-        .andExpect(content().string("Detalhes do livro exibido."));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.titulo").value("Livro de Teste"))
+        .andExpect(jsonPath("$.autor").value("Autor de teste"));
+  }
+
+  @Test
+  public void testLerLivroNaoEncontrado() throws Exception { //entrega 404
+    // GIVEN
+    Long id = 99L;
+
+    given(livroService.consultarLivro(id))
+        .willThrow(new LivroNaoEncontradoException(id));
+
+    // WHEN
+    ResultActions response = mockMvc.perform(
+        get("/livros/ler-livro/{id}", id)
+            .accept(MediaType.APPLICATION_JSON)
+    );
+
+    // THEN
+    response
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.message")
+            .value("Livro com id 99 não encontrado"));
   }
 
   @Test //indica uma anotação do JUnit "teste automatizado"
   public void testBuscarLivro() throws Exception {
     // GIVEN
-    Livro livro = new Livro(1L, "Teste", "Autor");
-    given(livroService.buscarPorId(1L)).willReturn(livro);
+    Long id = 1L;
+
+    Livro livro = new Livro();
+    livro.setId(id);
+    livro.setTitulo("Teste");
+    livro.setAutor("Autor");
+    given(livroService.consultarLivro(1L)).willReturn(livro);
 
     // WHEN
-    mockMvc.perform(get("/livros/{id}", 1L))
+    ResultActions response = mockMvc.perform(
+        get("/livros/buscar-livro/{id}", 1L)
+            .accept(MediaType.APPLICATION_JSON));
 
-        // THEN
+    // THEN
+    response
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.titulo").value("Teste"));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.titulo").value("Teste"))
+        .andExpect(jsonPath("$.autor").value("Autor"));
   }
 
   @Test
@@ -115,7 +169,8 @@ public class LivroControllerTest {
 
     // WHEN (quando...)
     ResultActions response = mockMvc.perform(
-        get("/livros/buscar-livro{id}", idInexistente)
+        get("/livros/buscar-livro/{id}", idInexistente)
+            .accept(MediaType.APPLICATION_JSON)
     );
 
     // THEN (então...)
@@ -150,5 +205,70 @@ public class LivroControllerTest {
         .andExpect(jsonPath("$.titulo").value("Livro Atualizado"))
         .andExpect(jsonPath("$.autor").value("Autor Atualizado"))
         .andExpect(content().json(jsonLivro));
+  }
+
+  @Test
+  public void deveRetornarErroAoAtualizarLivroInexistente() throws Exception {
+    // GIVEN
+    Long idInexistente = 999L;
+    Livro dadosLivro = new Livro();
+    dadosLivro.setTitulo("Livro Inexistente");
+    dadosLivro.setAutor("Autor Inexistente");
+
+    String jsonLivro = new ObjectMapper().writeValueAsString(dadosLivro);
+
+    given(livroService.atualizarDados(eq(idInexistente), any()))
+        .willThrow(new LivroNaoEncontradoException(idInexistente));
+
+    // WHEN
+    ResultActions response = mockMvc.perform(
+        put("/livros/atualizar-livro/{id}", idInexistente)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonLivro)
+    );
+
+    // THEN
+    response.andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.message")
+            .value("Livro com id " + idInexistente + " não encontrado"));
+  }
+  
+  @Test
+  public void deletarLivro() throws Exception {
+    //Given
+    Long id = 1L;
+
+    given(livroService.deletarLivro(id))
+        .willReturn(new Livro());
+
+    //WHEN
+    ResultActions response = mockMvc.perform(delete("/livros/deletar-livro/{id}", id)
+            .accept(MediaType.APPLICATION_JSON));
+
+    //THEN
+    response
+        .andExpect(status().isOk())
+        .andExpect(content().string("Livro deletado com sucesso."));
+  }
+
+  @Test
+  public void deletarLivroInexistenteErro404() throws Exception {
+    // GIVEN
+    Long idInexistente = 999L;
+
+    given(livroService.deletarLivro(idInexistente))
+        .willThrow(new LivroNaoEncontradoException(idInexistente));
+
+    // WHEN
+    ResultActions response = mockMvc.perform(
+        delete("/livros/deletar-livro/{id}", idInexistente)
+            .accept(MediaType.APPLICATION_JSON)
+    );
+
+    // THEN
+    response
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Livro com id 999 não encontrado"));
   }
 }

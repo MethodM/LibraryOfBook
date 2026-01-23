@@ -38,13 +38,13 @@ public class LivroController {
 
   //throws Exception -> pode lançar exceções que precisarão ser tratadas
   // em outro lugar (ou pelo Spring)
-  /*@GetMapping("/ler-livro/{id}")
+  @GetMapping("/ler-livro/{id}")
   public ResponseEntity<?> lerLivro() throws Exception {
     Livro livro = new Livro();
     livro.exibirDetalhes();
     return ResponseEntity.status(HttpStatus.OK).body("Detalhes do livro exibidos.");
-    //return status(HttpStatusCode.valueOf(200)).body("Detalhes do livro exibidos.");
-  }*/
+    //return ResponseEntity.ok(livro);
+  }
 
   @GetMapping("/buscar-livro/{id}")
   public ResponseEntity<?> buscarLivro(@PathVariable Long id) {
