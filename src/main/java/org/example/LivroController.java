@@ -1,5 +1,6 @@
 package org.example;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class LivroController {
   }
 
   @PostMapping("/criar-livro")
-  public ResponseEntity<?> criarLivro(@RequestBody Livro livro) {
+  public ResponseEntity<?> criarLivro(@Valid @RequestBody Livro livro) {
     System.out.println("Recebi Livro: " + livro.getTitulo());
     Livro livroSalvo = livroService.registrarLivro(livro);
     //Code 201 -> Created

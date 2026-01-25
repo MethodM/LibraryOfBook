@@ -1,18 +1,25 @@
 package org.example;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
-@Component
 public class Livro {
 
   private Long id;
+
+  @NotBlank(message = "O título do livro é obrigatório.")
   private String titulo;
+
+  @NotBlank(message = "O autor do livro é obrigatório.")
   private String autor;
+
+  @Positive(message = "O ano de publicação deve ser um número positivo.")
   private int anoPublicacao;
+
   private boolean disponivel;
 
   public Livro() {
@@ -35,31 +42,13 @@ public class Livro {
     this.disponivel = disponivel;
   }
 
-  public Livro (Long id, String titulo, String autor) {
+  public Livro(Long id, String titulo, String autor) {
     this.id = id;
     this.titulo = titulo;
     this.autor = autor;
   }
 
-  public Long getId() {
-    return id;
-  }
-
   public void exibirDetalhes() {
     System.out.println("Teste: Detalhes do livro");
-  }
-
-  public void setTitulo(String titulo) {
-    this.titulo = titulo;
-  }
-
-  public String getTitulo() {
-    return titulo;
-  }
-
-  public static class LivroNaoEncontradoException extends RuntimeException {
-    public LivroNaoEncontradoException(Long id) {
-      super(id + " não encontrado.");
-    }
   }
 }
