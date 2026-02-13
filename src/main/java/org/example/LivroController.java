@@ -1,7 +1,8 @@
 package org.example;
 
+import dto.LivroCreateDTO;
+import dto.LivroResponseDTO;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,6 @@ public class LivroController {
   /*@Autowired(required = false)
   private WebSocket usuarioWebSocket;*/
 
-  @Autowired
   private LivroService livroService;
 
   public LivroController(LivroService livroService) {
@@ -29,12 +29,15 @@ public class LivroController {
   }
 
   @PostMapping("/criar-livro")
-  public ResponseEntity<?> criarLivro(@Valid @RequestBody Livro livro) {
-    System.out.println("Recebi Livro: " + livro.getTitulo());
+  public ResponseEntity<LivroResponseDTO> criarLivro(@Valid @RequestBody LivroCreateDTO livroDTO) {
+    Livro livro = new Livro();
+    livro.setTitulo(livroDTO.getTitulo());
+    livro.setAutor(livroDTO.getAutor());
+    livro.setAnoPublicacao(livroDTO.getAnoPublicacao());
+    livro.setDisponivel(true);
+
     Livro livroSalvo = livroService.registrarLivro(livro);
-    //Code 201 -> Created
-    return ResponseEntity.status(HttpStatus.CREATED).body(livroSalvo);
-    //return ResponseEntity.status(201).body(livroSalvo);
+    return ResponseEntity.status(HttpStatus.CREATED).body(livroService.toResponseDTO(livroSalvo)); //Code 201 -> Created
   }
 
   //throws Exception -> pode lançar exceções que precisarão ser tratadas
@@ -48,13 +51,11 @@ public class LivroController {
   }
 
   @GetMapping("/buscar-livro/{id}")
-  public ResponseEntity<?> buscarLivro(@PathVariable Long id) {
+  public ResponseEntity<LivroResponseDTO> buscarLivro(@PathVariable Long id) {
     Livro livroBuscado = livroService.consultarLivro(id);
-    if (livroBuscado == null) {
-      return ResponseEntity.status(404).body("Livro não encontrado na biblioteca.");
-    }
+
     // buscarLivro(this.usuarioWebSocket); -> errado: chamando a si mesmo de novo
-    return ResponseEntity.ok(livroBuscado); //está correto -OK
+    return ResponseEntity.ok(livroService.toResponseDTO(livroBuscado)); //está correto -OK
   }
 
   @PutMapping("/atualizar-livro/{id}")

@@ -1,6 +1,7 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.LivroCreateDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -8,11 +9,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -233,7 +234,7 @@ public class LivroControllerTest {
         .andExpect(jsonPath("$.message")
             .value("Livro com id " + idInexistente + " não encontrado"));
   }
-  
+
   @Test
   public void deletarLivro() throws Exception {
     //Given
@@ -244,7 +245,7 @@ public class LivroControllerTest {
 
     //WHEN
     ResultActions response = mockMvc.perform(delete("/livros/deletar-livro/{id}", id)
-            .accept(MediaType.APPLICATION_JSON));
+        .accept(MediaType.APPLICATION_JSON));
 
     //THEN
     response
@@ -270,5 +271,18 @@ public class LivroControllerTest {
     response
         .andExpect(status().isNotFound())
         .andExpect(content().string("Livro com id 999 não encontrado"));
+  }
+
+  @Test
+  public void retornarLivroSemTituloErro400() throws Exception {
+    LivroCreateDTO livroDTO = new LivroCreateDTO();
+    livroDTO.setAutor("Autor teste");
+    livroDTO.setAnoPublicacao(2025);
+
+    mockMvc.perform(post("/livros/criar-livro")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(livroDTO)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors.titulo").exists());
   }
 }

@@ -1,5 +1,6 @@
 package org.example;
 
+import dto.LivroResponseDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -71,4 +72,15 @@ public class LivroService {
     return livroRepository.findById(id)
         .orElseThrow(() -> new LivroNaoEncontradoException(id));
   }
+
+  public LivroResponseDTO toResponseDTO(Livro livro) {
+    return new LivroResponseDTO(
+        livro.getId(),
+        livro.getTitulo(),
+        livro.getAutor(),
+        livro.getAnoPublicacao(),
+        livro.isDisponivel()
+    );
+  }
+
 }
