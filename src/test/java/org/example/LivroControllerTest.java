@@ -1,7 +1,12 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dto.LivroCreateDTO;
+import org.example.controller.LivroController;
+import org.example.dto.LivroCreateDTO;
+import org.example.dto.LivroResponseDTO;
+import org.example.exception.LivroNaoEncontradoException;
+import org.example.model.Livro;
+import org.example.service.LivroService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,22 +43,33 @@ public class LivroControllerTest {
   public void testCriarLivro() throws Exception { //Retorna código 201 Created
 
     // GIVEN
-    Livro livroEntrada = new Livro();
+    LivroCreateDTO livroEntrada = new LivroCreateDTO();
     livroEntrada.setTitulo("Teste de Livro");
+    livroEntrada.setAutor("Autor de Teste");
+    livroEntrada.setAnoPublicacao(2024);
+    livroEntrada.setDisponivel(true);
 
     Livro livroSalvo = new Livro();
     livroSalvo.setId(1L);
     livroSalvo.setTitulo("Teste de Livro");
+    livroSalvo.setAutor("Autor de Teste");
+    livroSalvo.setAnoPublicacao(2024);
+    livroSalvo.setDisponivel(true);
+
+    LivroResponseDTO dto = new LivroResponseDTO(1L, "Teste de Livro", "Autor de Teste", 2024, true);
 
     given(livroService.registrarLivro(any(Livro.class)))
         .willReturn(livroSalvo);
+
+    given(livroService.toResponseDTO(any(Livro.class)))
+        .willReturn(dto);
 
     // WHEN
     ResultActions response = mockMvc.perform(
         post("/livros/criar-livro")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(livroEntrada))
-    );
+    ).andDo(print()); // temporarialmente para imprimir a resposta no console e facilitar a depuração
 
     // THEN
     response
@@ -109,7 +126,7 @@ public class LivroControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.titulo").value("Livro de Teste"))
-        .andExpect(jsonPath("$.autor").value("Autor de teste"));
+        .andExpect(jsonPath("$.autor").value("Autor de Teste"));
   }
 
   @Test
@@ -278,6 +295,7 @@ public class LivroControllerTest {
     LivroCreateDTO livroDTO = new LivroCreateDTO();
     livroDTO.setAutor("Autor teste");
     livroDTO.setAnoPublicacao(2025);
+    livroDTO.setDisponivel(true);
 
     mockMvc.perform(post("/livros/criar-livro")
             .contentType(MediaType.APPLICATION_JSON)
