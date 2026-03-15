@@ -1,4 +1,4 @@
-# 📚 Biblioteca API
+# Biblioteca API
 
 API REST para gerenciamento de uma biblioteca de livros desenvolvida com
 **Java e Spring Boot**.\
@@ -11,7 +11,7 @@ evoluções, incluindo **interface gráfica para usuários**.
 
 ------------------------------------------------------------------------
 
-# 🚀 Tecnologias Utilizadas
+# Tecnologias Utilizadas
 
 -   Java 17+
 -   Spring Boot
@@ -26,7 +26,7 @@ evoluções, incluindo **interface gráfica para usuários**.
 
 ------------------------------------------------------------------------
 
-# 🧱 Arquitetura do Projeto
+# Arquitetura do Projeto
 
 O projeto segue uma arquitetura em camadas comum em aplicações backend
 Java:
@@ -61,7 +61,7 @@ Tratamento global de erros utilizando `@RestControllerAdvice`.
 
 ------------------------------------------------------------------------
 
-# 📦 Modelo da Entidade
+# Modelo da Entidade
 
 ### Livro
 
@@ -73,7 +73,7 @@ Tratamento global de erros utilizando `@RestControllerAdvice`.
 
 ------------------------------------------------------------------------
 
-# 🔗 Endpoints da API
+# Endpoints da API
 
 ### Criar livro
 
@@ -141,7 +141,7 @@ Exemplo:
 
 ------------------------------------------------------------------------
 
-# 🧪 Testes
+# Testes
 
 A aplicação possui testes utilizando:
 
@@ -153,7 +153,7 @@ Os testes simulam requisições HTTP para os controllers.
 
 ------------------------------------------------------------------------
 
-# 📊 Boas práticas aplicadas
+# Boas práticas aplicadas
 
 ✔ DTO Pattern\
 ✔ Exception Handling Global\
@@ -164,7 +164,7 @@ Os testes simulam requisições HTTP para os controllers.
 
 ------------------------------------------------------------------------
 
-# 🛠 Roadmap do Projeto
+# Roadmap do Projeto
 
 ## Backend
 
@@ -195,7 +195,7 @@ Possíveis tecnologias:
 
 ------------------------------------------------------------------------
 
-# 🧠 Objetivo do Projeto
+# Objetivo do Projeto
 
 Este projeto foi desenvolvido com fins de **estudo e prática de
 desenvolvimento backend com Java e Spring Boot**, com foco em:
