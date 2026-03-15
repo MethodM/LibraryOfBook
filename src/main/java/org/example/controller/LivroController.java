@@ -1,8 +1,12 @@
-package org.example;
+package org.example.controller;
 
-import dto.LivroCreateDTO;
-import dto.LivroResponseDTO;
 import jakarta.validation.Valid;
+import org.example.dto.LivroCreateDTO;
+import org.example.dto.LivroResponseDTO;
+import org.example.model.Livro;
+import org.example.service.LivroService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,10 +47,10 @@ public class LivroController {
   //throws Exception -> pode lançar exceções que precisarão ser tratadas
   // em outro lugar (ou pelo Spring)
   @GetMapping("/ler-livro/{id}")
-  public ResponseEntity<?> lerLivro() throws Exception {
-    Livro livro = new Livro();
-    livro.exibirDetalhes();
-    return ResponseEntity.status(HttpStatus.OK).body("Detalhes do livro exibidos.");
+  public ResponseEntity<LivroResponseDTO> lerLivro(@PathVariable Long id) throws Exception {
+    Livro livro = livroService.consultarLivro(id);
+    return ResponseEntity.ok(livroService.toResponseDTO(livro));
+    /*livro.exibirDetalhes();*/
     //return ResponseEntity.ok(livro);
   }
 
@@ -71,5 +75,10 @@ public class LivroController {
   public ResponseEntity<?> deletarLivro(@PathVariable Long id) {
     livroService.deletarLivro(id);
     return ResponseEntity.ok("Livro deletado com sucesso.");
+  }
+
+  @GetMapping
+  public Page<LivroResponseDTO> listarLivros(Pageable pageable) {
+    return livroService.listar(pageable);
   }
 }
