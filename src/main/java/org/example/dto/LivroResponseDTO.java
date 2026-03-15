@@ -1,6 +1,6 @@
-package dto;
+package org.example.dto;
 
-public class LivroResponseDTO {
+public class LivroResponseDTO extends LivroCreateDTO {
 
   private Long id;
   private String titulo;
@@ -31,7 +31,7 @@ public class LivroResponseDTO {
     return autor;
   }
 
-  public int getAnoPublicacao() {
+  public Integer getAnoPublicacao() {
     return anoPublicacao;
   }
 
