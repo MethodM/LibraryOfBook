@@ -1,6 +1,13 @@
-package org.example;
+package org.example.service;
 
-import dto.LivroResponseDTO;
+import org.example.dto.LivroResponseDTO;
+import org.example.exception.LivroNaoEncontradoException;
+import org.example.exception.ResourceNotFoundException;
+import org.example.mapper.LivroMapper;
+import org.example.model.Livro;
+import org.example.repository.LivroRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -81,6 +88,11 @@ public class LivroService {
         livro.getAnoPublicacao(),
         livro.isDisponivel()
     );
+  }
+
+  public Page<LivroResponseDTO> listar(Pageable pageable) {
+    return livroRepository.findAll(pageable)
+        .map(LivroMapper::toDTO);
   }
 
 }
